@@ -2,6 +2,12 @@
 Clean and Analyze Employee Exit Surveys with Python
 ## Introduction
 In this case study, I will perform many real-world tasks of a junior data analyst at a fictional company, Cyclistic. In order to answer the key business questions, I will follow the steps of the data analysis process: [Ask](https://github.com/Romeeeo/Employee_exit_surveys/edit/main/README.md#ask), [Prepare](https://github.com/Romeeeo/Employee_exit_surveys/edit/main/README.md#prepare), [Process](https://github.com/Romeeeo/Employee_exit_surveys/edit/main/README.md#process), [Analyze](https://github.com/Romeeeo/Employee_exit_surveys/edit/main/README.md#analyze-and-share), [Share](https://github.com/Romeeeo/Employee_exit_surveys/edit/main/README.md#analyze-and-share), and [Act](https://github.com/Romeeeo/Employee_exit_surveys/edit/main/README.md#act).
+### Quick Links
+Data Source: In this project we will work with exit surveys from employees of the [Department of Education, Training and Employment (DETE)](https://en.wikipedia.org/wiki/Department_of_Education_and_Training_(Queensland)) and the Technical and Further Education (TAFE) institute in Queensland, Australia. You can find the DETE exit survey data [here](https://data.gov.au/dataset/ds-qld-fe96ff30-d157-4a81-851d-215f2a0fe26d/details?q=exit%20survey)
+
+Jupyter Notebook: [Jupyter Notebook](https://github.com/Romeeeo/Employee_exit_surveys/blob/main/employee_exit_survey.ipynb)
+
+
 ## Background
 
 ### Scenario

@@ -74,7 +74,7 @@ dete_survey = pd.read_csv('Data/dete_survey.csv', na_values='Not Stated')
 This will Read in the data again, but this time read `Not Stated` values as `NAN`
 
 Here is what the dataset looks like now:
-![c1](Images\c1.png)
+![c1](Images/c1.png)
 
 Remove columns that we don't need for our analysis:
 ```
@@ -109,10 +109,10 @@ tafe_survey_updated = tafe_survey_updated.rename(mapping, axis = 1)
 Here are the updates column names for both datasets:
 
 __DETE Survey__
-![c2](Images\c2.png)
+![c2](Images/c2.png)
 
 __TAFE Surevey__
-![c3](Images\c3.png)
+![c3](Images/c3.png)
 
 __Filter the Data__
 

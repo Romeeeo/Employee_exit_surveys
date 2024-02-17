@@ -81,11 +81,13 @@ Remove columns that we don't need for our analysis:
 dete_survey_updated = dete_survey.drop(dete_survey.columns[28:49], axis=1)
 tafe_survey_updated = tafe_survey.drop(tafe_survey.columns[17:66], axis=1)
 ```
+In this case we do not need the following column indexes, __28-49__ in `dete_survey`, and __17-66__ in `tafe_survey`.
+
 __Clean Column Names__
 ```
 dete_survey_updated.columns = dete_survey_updated.columns.str.lower().str.strip().str.replace(' ', '_')
 ```
-Running this line of code updates all column names to lowercase using `str.lower()`, remove leading and trailing whitespaces `str.strip()`, and replace all spaces with _ using `str.replace(' ', '_')`
+Running this line of code updates all column names to lowercase using `str.lower()`, remove leading and trailing whitespaces `str.strip()`, and replace all spaces with `_` using `str.replace(' ', '_')`
 
 We can check the new column names by running:
 ```
@@ -109,10 +111,264 @@ tafe_survey_updated = tafe_survey_updated.rename(mapping, axis = 1)
 Here are the updates column names for both datasets:
 
 __DETE Survey__
+
 ![c2](Images/c2.png)
 
 __TAFE Surevey__
+
 ![c3](Images/c3.png)
 
 __Filter the Data__
+
+Check the unique values for the `separationype` column in both datasets.
+
+```
+tafe_survey_updated['separationtype'].value_counts()
+```
+
+```
+dete_survey_updated['separationtype'].value_counts()
+```
+
+Here we can see that the resignation value is lowercase, we need to update all separation types in the dete survey containg the word __"resignation"__ to just __'Resignation'__ to match the tefe survey value.
+
+```
+dete_survey_updated['separationtype'] = dete_survey_updated['separtiontype'].str.split('-').str[0]
+```
+
+We are using the deliminter "-" in this case.
+
+Check to see if the values in the `separationtype` were updated correctly:
+
+```
+dete_survey_updated['separtiontype'].value_counts()
+```
+
+Here is a before and after of the separtion types:
+
+__Before__
+
+![c4](Images/c4.png)
+
+__After__
+
+![c5](Images/c5.png)
+
+We can see that this was able to contain all 3 separation types containing the work "Resignation", similar to how the tefe data is.
+
+We will now only select the resignation separation types from each dataframe.
+```
+dete_resignations = dete_survey_updated[dete_survey_update['separationtype'] == 'Resignation'].copy()
+```
+```
+tafe_resignations = tafe_survey_updated[tafe_survey_update['separationtype'] == 'Resignation'].copy()
+```
+
+__Verify the Data__
+
+Here we will verify that the data doesn't contain any major inconsistencies.
+
+We will clean and explore the `cease_date` and `dete_start_date` columns to make sure all of the years make sense.
+* Since the `cease_date` is the last year of the person's employment and the `dete_start_date` is the person's first year of employment, there's no reason to have years after the current date.
+* Given that most people in this field start workng in their 20s, it's also unlikely that the `dete_start_date` was before the year __1940__.
+
+First we will check the unique values:
+```
+dete_resignations['cease_date'].value_counts()
+```
+
+![c6](Images/c6.png)
+
+Next we extract the __years__ and convert them to a float type:
+
+```
+dete_resignations['cease_date'] = dete_resignations['cease_date'].str.split('/').str[-1]
+
+dete_resignations['cease_date'] = dete_resignations['cease_date'].astype("float")
+```
+```
+# Check the values again and look for outliers
+dete_resignations['cease_date'].value_counts()
+```
+
+The values for the `cease_date` column now look like:
+
+![c7](Images/c7.png)
+
+We will also look into the unique values for the `dete_start_date` column:
+```
+dete_resignations['dete_start_date'].value_counts().sort_values()
+```
+
+Also checking the unique values of the tafe dataset:
+```
+tafe_resignations'[cease_date'].value_counts().sort_values()
+```
+
+![c8](Images/c8.png)
+
+Here is what we have found:
+* The years in both dataframes don't completely align
+* The `tafe_survey_updated` dataframe contains some cease dated in 2009, but the `dete_survey_updated` dataframe does not
+* The `tafe_survey_updated` dataframs also contains many more cease dates in 2010 than the `dete_survey_updated` dataframe
+
+__Create a new Column__
+
+We need a column containing the length of time an empployee spend in their workplace, years of service, in both dataframes.
+
+Question:
+<center>__
+Are employees who only worked for the institutes for a short period of time resigning due to some kind of dissatisfaction? What about employees who have been there longer?
+</center>
+
+We now need to calculate the years of service in the `dete_survey_updated` dataframe by subtracting the `dete_start_date` form the `cease_date` and create a new column named `institute_service` (tafe_servey already has this column)
+
+```
+dete_resignations['institute_service'] = dete_resignations['cease_date'] - dete_resinations['dete_start_date']
+```
+
+If we check the result we get:
+```
+dete_resignations['institute_service'].head()
+```
+
+![c9](Images/c9.png)
+
+__Identify Dissatisfies Employees__
+
+Below are the columns that we'll use to categorize employees as "dissatisfied" from each dataframe:
+
+1. tafe_survey_updated
+- Contributing Factors. Dissatisfaction
+- Contributing Factors. Job Dissatisfaction
+2. dafe_survey_updated
+- job_dissatisfaction
+- dissatisfacton_with_the_department
+- physical_work_enviroment
+- lack_of_recognition
+- lack_of_job_security
+- work_location
+- employment_conditions
+- work_life_balance
+- workload
+
+If the employee indicated that one of those caused them to resign, we'll mark them as dissatisfied in a new column.
+
+The new dissatisfied column will contain just the following values:
+- __True:__ indicates a person resigned because they were dissatisfied in some way
+- __False:__ indicates a person resigned because of a reason other than dissatisfaction with the job
+- __NaN:__ indicates the value is missing
+
+We will firest check the unique values of the `tafe_survey_updated` dataframe
+```
+tafe_resignations['Contributing Factors. Dissatisfaction'].value_counts()
+```
+```
+tafe_resignations['Contributing Factors. Job Dissatisfaction'].value_counts()
+```
+
+We will then update the values in the contributing factors to be either, __True__, __False__, or __NaN__
+
+```
+def update_vals(x):
+    if x == '-':
+        return False
+    elif pd.isnull(x):
+        return np.nan
+    else:
+        return True
+tafe_resignations['dissatisfied'] = tafe_resignations[['Contributing Factors. Dissatisfaction', 'Contributing Factors. Job Dissatisfaction']].applymap(update_vals).any(1, skipna=False)
+tafe_resignations_up = tafe_resignations.copy()
+```
+Check the unique values after the updates:
+```
+tafe_resignations_up['dissatisfied'].value_counts(dropna=False)
+```
+
+Now let's do this for the dete_survey dataset
+```
+# Update the values in columns related to dissatisfaction to be either True, False, or NaN
+dete_resignations['dissatisfied'] = dete_resignations[['job_dissatisfaction',
+       'dissatisfaction_with_the_department', 'physical_work_environment',
+       'lack_of_recognition', 'lack_of_job_security', 'work_location',
+       'employment_conditions', 'work_life_balance',
+       'workload']].any(1, skipna=False)
+dete_resignations_up = dete_resignations.copy()
+dete_resignations_up['dissatisfied'].value_counts(dropna=False)
+```
+
+__Combine the Data__
+
+We'll now add an institute column so that we can differentiate the data from __each survey__ after we combine them. Then, we'll combine the dataframes and drop any remaining columnds we don't need.
+
+Add an institute column:
+```
+dete_resignations_up['institute'] = 'DETE'
+tafe_resignations_up['institute'] = 'TAFE'
+```
+
+Now we will combine the dataframes:
+```
+combined = pd.concat([dete_resignations_up, tafe_resignations_up], ignore_index=True)
+```
+Then we need to check the non null values of each column and drop the columns with less than 500 non null values.
+```
+combined.notnull().sum().sort_values(ascending=False)
+```
+```
+combined_updated = combined.dropna(thresh = 500, axis = 1).copy()
+```
+
+__Clean the service Column__
+
+Next we will need to clean the institute_service column.
+
+The employees will be categorized according to the followind definitions:
+- __New:__ Less than 3 years in the workplace
+- __Experienced:__ 3-6 years in the workplace
+- __Established__: 7-10 years in the workplace
+- __Veteran:__ 11 or more years in the workplace
+
+Check the unique values:
+```
+combined_updated['institute_service'].value_counts(dropna=False)
+```
+
+Extract the years of service and convert the datatype to float:
+```
+combined_updated['institute_service_up'] = combined_updated['institute_service'].astype('str').str.extract(r'(\d+)')
+combined_updated['institute_service_up'] = combined_updated['institute_service_up'].astype('float')
+
+# Check that the years extracted are correct
+combined_updated['institute_service_up'].value_counts()
+```
+Now we will convert the years of service into categories
+
+```
+# Convert years of service to categories
+def transform_service(val):
+    if val >= 11:
+        return "Veteran"
+    elif 7 <= val < 11:
+        return "Established"
+    elif 3 <= val < 7:
+        return "Experienced"
+    elif pd.isnull(val):
+        return np.nan
+    else:
+        return "New"
+combined_updated['service_cat'] = combined_updated['institute_service_up'].apply(transform_service)
+
+# Quick check of the update
+combined_updated['service_cat'].value_counts()
+```
+
+Here are the results:
+
+![c10](Images/c10.png)
+
+## Analyze and Share
+
+__Perform Intial Analysis__
+
 

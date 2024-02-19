@@ -371,4 +371,52 @@ Here are the results:
 
 __Perform Intial Analysis__
 
+We will now replace the missing values in the dissatisfied column with the most frequent value, False. The percentage of employees who resigned due to dissatisfaction in each `service_cat` group will be found and we will also plot the results for this.
 
+This is meant to be an intial introduction to the analysis, not the final analysis as we still have additional missing values left to deal with.
+
+Let's first verify the unique values:
+
+```
+combine_updated['dissatisfied'].value_counts(dropna=False)
+```
+![c11](Images/c11.png)
+
+Then let's replace the missing values with the most frequent value, False:
+
+```
+combine_updated['dissatisfied'] = combine_updated['dissatisfied'].fillna(False)
+```
+Next we will calculate the percentage of employees who resigned due to dissatifaction in each category.
+
+```
+dis_pct = combined_updated.pivot_table(index='service_cat', values='dissatisfied')
+```
+
+Plotting the Results:
+
+```
+%matplotlib inline
+dis_pct.plot(kind='bar', rot=30)
+```
+
+![c12](Images/c12.png)
+
+Looking at the analysis and the plot from above, we can conclude that employees with 7 or more years of service are more likely to resign due to some kind of dissatifacation with the job than employees with less than 7 years of service.
+
+We will need to handle the rest of the missing data to finalize our analysis.
+
+In this guided project (from __DataQuest__), we experienced that in order to extract any meaningful insights from our data, we had to perform many data cleaning tasks. In order to create one visualization (and not even the final one), we completed the following tasks:
+
+- Explored the data and figured out how to prepare it for analysis
+- Corrected some of the missing values
+- Dropped any data not needed for our analysis
+- Renamed our columns
+- Verified the quality of our data
+- Created a new institute_service column
+- Cleaned the Contributing Factors columns
+- Created a new column indicating if an employee resigned because they were dissatisfied in some way
+- Combined the data
+- Cleaned the institute_service column
+- Handled the missing values in the dissatisfied column
+- Aggregated the data
